@@ -1,0 +1,8 @@
+#summary A list of Closure Compiler tutorials/demos that are neat.
+
+=== English ===
+  * [http://code.google.com/closure/compiler/docs/overview.html Official Tutorial]
+  * [http://blog.bolinfest.com/2009/11/calling-closure-compiler-from-java.html Calling the Closure Compiler from Java] by Michael Bolin (Michael writes a lot about Closure Compiler at [http://blog.bolinfest.com/ The Bolinfest Changeblog])
+
+=== Russian ===
+  * http://javascript.ru/optimize/google-closure-compiler by Ilia Kantor

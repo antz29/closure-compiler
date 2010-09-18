@@ -1,0 +1,92 @@
+#summary Recent releases for Closure Compiler sources and web service.
+
+= Introduction =
+
+Here's a list of recent releases of Closure Compiler.  We update the source distribution and the compile service (at http://closure-compiler.appspot.com) every couple weeks, depending on the changes that have been made..
+
+= Details =
+
+September 17, 2010
+  * Full support for goog.scope
+  * Better optimization of external calls that have no side effects (like getElementById)
+  * Much better unused var removal
+  * A number of peephole and constant-folding optimizations
+  * Much faster source map generation
+  * Better property detection for missingProperties check
+  * Much better type inference in local scopes
+  * type inference of return types on functions
+  * type checker warns about comparision of functions  to booleans, numbers, or strings
+  * Better externs file validation
+  * @suppress annotations work for all canonical warning groups
+  * @notypecheck annotation blocks more warnings
+  * General performance improvements
+  * Fixes issues 188, 186, 96, 177, 143, 221, 205, 200, 197, 182, 194, 172, 191, 71, 66, 229, among others
+
+June 16, 2010
+  * Beta support for goog.scope
+  * Smarter unreachable code analysis.
+  * Folds "new Error" to "Error", "new RegExp" to "RegExp", etc.
+  * Extract Prototype Member / Devirtualization improvements
+  * deterministic source maps
+  * Peephole optimizations
+  * Added @nocompile annotation to work with --manage_closure_dependencies
+  * Inline more functions into the global scope in advanced mode
+  * Better detection for dangerous 'this' references in verbose mode
+  * Disabled flow sensitive variable inlining by default, because it still has problems
+  * Fixes issues 174, 166, 168, 125 among others
+
+
+May 14, 2010
+  * Shadowing of the `arguments` variable is now forbidden
+  * Added the `--manage_closure_dependencies` flag (pending documentation)
+  * Support for the @extern annotation
+  * Type-inference plugin that knows about goog.asserts
+  * Data-flow based variable inlining
+  * Better function inlining
+  * Warnings for unknown @suppress parameters
+  * Fixes for issue 141, issue 139, issue 58, issue 112, and many others
+
+Mar 30, 2010
+  * Renamed `CompilerRunner.java` to `CommandLineRunner.java`
+  * More user-friendly messaging for trailing commas
+  * Improvements to inlining and property ambiguation optimizations
+  * Run-time type-checking (not available from the command-line)
+  * Better type checking in inner functions
+  * Fixes for issue 33, issue 103, issue 116, issue 124, issue 127, and issue 130 (among others)
+
+Feb 1, 2010
+  * Support for Ant (BuildingWithAnt)
+  * The ability to turn type warnings on/off independent of other flags (--jscomp_warning=checkTypes)
+  * With --warning_level=QUIET, all warnings will be silenced.
+  * Fix for Issue 86 ("@inheritDoc doesn't play well with interfaces")
+  * Fix for Issue 81 ("eval function replaced with eval operator")
+  * Fix for Issue 80 ("Inappropriate side-effect warning")
+  * A few improvements to variable inlining.
+ 
+
+Dec 17, 2009:
+  * Fix for issue 75 ("indexing into an array with a string shouldn't be an error")
+  * Fix for issue 63 ("create source map in whitespace-only mode.")
+  * Fix for issue 24 ("Add --charset option to command line compiler that changes the input and output chararacter set.")
+  * Don't generate warnings for ES5 directives
+  * Generate a warning for unsafe uses of "with".  Suppress warning with  /** @suppress {with} */
+  * Various bugs fixed.
+  
+Dec 3, 2009:
+
+  * Several bug fixes.
+  * Make --define part of the open source API.
+  * Allow RemoveUnusedVars to strip unused anonymous function names.
+  * Add a warning for function declarations that may behave differently in different browsers.
+  * Enable local variable inlining for simple mode.
+  * Digits aren't allowed as the first character of a key, so add a prefix.
+
+November 19, 2009:
+
+  * Better dead assignment elimination
+  * Support for goog.base
+  * Allow $ in method names.
+  * Inline local functions and anonymous functions
+  * Fix some compiler crashes when folding ifs and handling local vars
+  * Better type inference in externs
+  * Don't emit warnings for JSDoc annotations we don't support.

@@ -1,0 +1,163 @@
+#summary Documents the --manage_closure_dependencies option
+
+The browser processes JavaScript files serially. So if you have a lot of JavaScript files you'll need some way to make sure they get executed in the right order.
+
+Closure Library offers [http://code.google.com/closure/library/docs/calcdeps.html a few python scripts] that help you manage dependencies between files. In the Closure Library world, each JavaScript file has a `goog.provide` call at the top for each major symbol it defines, and a `goog.require` call at the top for each symbol it needs. Closure Library's scripts use that information to determine an ordering.
+
+Now, Closure Compiler has this feature built-in! Read on to find out more.
+
+=== Using --manage_closure_dependencies to auto-sort files ===
+
+Suppose you have three files.
+
+{{{
+// File 1 - icecream.js
+goog.provide('ice.cream');
+}}}
+----
+{{{
+// File 2 - cone.js
+goog.provide('waffle.cone');
+}}}
+----
+{{{
+// File 3 - shop.js
+goog.require('ice.cream');
+goog.require('waffle.cone');
+}}}
+----
+
+You want to compile your ice cream shop, so you pass it to the compiler.
+
+{{{
+$ java -jar compiler.jar --js shop.js
+
+shop.js:2: ERROR - required "ice.cream" namespace not provided yet
+goog.require('ice.cream');
+            ^
+
+shop.js:3: ERROR - required "waffle.cone" namespace never provided
+goog.require('waffle.cone');
+            ^
+
+2 error(s), 0 warning(s)
+}}}
+
+What happened? The compiler noticed that shop.js requires ice.cream and waffle.cone, but it did not know where to find those files. You have to pass them in explicitly. So next we try:
+
+{{{
+$ java -jar compiler.jar --js shop.js --js icecream.js --js cone.js
+
+shop.js:2: ERROR - required "ice.cream" namespace not provided yet
+goog.require('ice.cream');
+            ^
+
+shop.js:3: ERROR - required "waffle.cone" namespace not provided yet
+goog.require('waffle.cone');
+            ^
+
+2 error(s), 0 warning(s)
+}}}
+
+Now the compiler knows where ice.cream and waffle.cone are, but it's trying to process them out of order. When you pass files to Closure Compiler, it tries to preserve the order of the files on the commandline. In this example, cone.js will come after shop.js.
+
+We could rearrange our commandline arguments. But for a large number of JS files, this doesn't scale very well. It'd be better if the tools did that for us. That's what `--manage_closure_dependencies` is for!
+
+{{{
+$ java -jar compiler.jar --js shop.js --js icecream.js --js cone.js --manage_closure_dependencies true
+
+var ice={};ice.cream={};var waffle={};waffle.cone={};
+}}}
+
+Now, everything compiles successfully.
+
+There's one subtle point we should point out: Closure Compiler will rearrange the files with this flag on, but it will still maintain the _relative_ order of files when there aren't any dependencies between them. In the above example, icecream.js still comes before cone.js in the compiled output, because icecream.js came before cone.js on the commandline.
+
+===Wait -- aren't `goog.provide` and `goog.require` defined in Closure Library?===
+
+Yes. But Closure Compiler considers them magic primitives. The compiler automatically expands them into variable and property declarations. Even if the JS files you give it do not define `goog.provide`/`goog.require` anywhere, the compiler expands these symbols. Even if your JS files define completely bizarre implementations for these functions, the compiler still expands them according to the Closure Library implementation. The logic is hard-coded. 
+
+If you want the code to work uncompiled, you should either include Closure Library's [http://code.google.com/p/closure-library/source/browse/trunk/closure/goog/base.js base.js] with your code, or you should copy and paste the reference implementation.
+
+=== Using --manage_closure_dependencies to drop files that you don't need ===
+
+After a while, your friend decides to start an ice cream shop chain. His chain will depend on your original shop, so you explicitly `goog.provide` your Shop class.
+
+----
+{{{
+// File 3 - shop.js
+goog.provide('ice.cream.Shop');
+
+goog.require('ice.cream');
+goog.require('waffle.cone');
+}}}
+----
+
+Then, you run the compiler again.
+
+{{{
+$ java -jar compiler.jar --js shop.js --js icecream.js --js cone.js --manage_closure_dependencies true
+
+
+}}}
+
+Oh no! The output is empty. What happened?
+
+`--manage_closure_dependencies` makes a distinction between *application* files and *library* files. Any file that provides a symbol is considered a library file. By default, all code in library files is automatically dropped from the compiled output.
+
+Application files, by definition, do not have any `goog.provide` calls. These files are always included in the compiled output. More importantly, all library files required by an application file, as well as all of their transitive dependencies, are included in the compiled output. (If you are running in ADVANCED_OPTIMIZATIONS mode, individual symbols may still be removed from the files if they are not used and not exported. ADVANCED_OPTIMIZATIONS does not care about the distinction between library files and application files.)
+
+This makes it easier to manage the files for large libraries that use `goog.provide`. If you're compiling with Closure Library, you could pass every file in Closure Library to Closure Compiler. With `--manage_closure_dependencies` on, any files that are not explicitly required by your application files get automatically dropped.
+
+In the example above, you would define a new file:
+
+----
+{{{
+// File 4 - shop-app.js
+goog.require('ice.cream.Shop');
+}}}
+----
+
+When you include shop-app.js in the files passed to the compiler, your compile job works as expected.
+
+{{{
+$ java -jar compiler.jar --js shop-app.js --js shop.js --js icecream.js --js cone.js --manage_closure_dependencies true
+
+var ice={};ice.cream={};var waffle={};waffle.cone={};ice.cream.Shop={};
+}}}
+
+===Debugging `--manage_closure_dependencies`===
+
+This flag may sometimes appear to be magical. It reads all your code, and then picks a subset of files to include in the compilation. How do you know which files it picked?
+
+Fortunately, there's a flag for that.
+
+{{{
+$ java -jar compiler.jar --js shop-app.js --js shop.js --js icecream.js --js cone.js --manage_closure_dependencies true --output_manifest manifest.MF
+
+...
+
+$ cat manifest.MF
+icecream.js
+cone.js
+shop.js
+shop-app.js
+}}}
+
+When you use `--output_manifest` on the commandline, you give the flag an output file. The compiler writes a list of all the inputs processed, in sorted order, to this output file.
+
+===FAQ===
+
+*I made a syntax error in one of my library files, and when I used `--manage_closure_dependencies`, Closure Compiler didn't catch it. Why not?*
+
+When you use this flag, Closure Compiler looks at the dependencies and drops library files that are not required. It makes this determination very early in the process. It doesn't even parse the dropped files to check if they're syntactically valid.
+
+If you're writing a library and you're primarily using Closure Compiler to do syntax checking on that library, then you should not use `--manage_closure_dependencies`. You should create separate build rules for syntax checking and for compiling just what's needed in your app.
+
+* I was sick of typing `goog.require`, so I aliased it to `var r = goog.require;`. Now `--manage_closure_dependencies` doesn't work. Why? *
+
+Closure Compiler does not even parse the code to determine its dependencies. It just does a regular expression search. If your provide and require statements are not at the top of the file in the form that the compiler expects, then it will fail to find them.
+
+* Regular expressions? ew. Can I send you a patch to use a proper parser instead? *
+
+No. There's a reason we did it this way. It wasn't 100% laziness....just 80-90% laziness. As it turns out, loading thousands of files from disk and building parse trees for them takes some time and memory. If you only need a few files, but you're passing in hundreds of library files that will get dropped anyway, we didn't want to slow down your compilation by an order of magnitude by trying to grok all those files.
