@@ -1,9 +1,0 @@
-#summary JavaScript supported by Closure Compiler
-
-Closure compiler supports JavaScript as specified in [http://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%203rd%20edition,%20December%201999.pdf Ecma-262, edition 3 (PDF)].
-
-Here are some pages that we find useful for understanding the language:
-  * [http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference Mozilla's Core JavaScript Reference]
-  * [http://wiki.ecmascript.org/lib/exe/fetch.php?id=resources%3Aresources&cache=cache&media=resources:jscriptdeviationsfromes3.pdf Differences between IE's JScript implementation and JavaScript (PDF)]
-
-We are excited about the [http://www.ecma-international.org/publications/standards/Ecma-262.htm next version] of JavaScript, which was recently approved! YEAH!!!

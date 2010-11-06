@@ -1,3 +1,0 @@
-#summary Links to Closure Compiler design documents and proposals
-
-[https://docs.google.com/document/edit?id=1L6g92j9Z-w3uvDP0H-0whb2fOcwnjiXRY8pbG9LkOvQ The Type System]
